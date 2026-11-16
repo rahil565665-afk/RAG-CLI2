@@ -15,6 +15,8 @@ EMERGENCY_PATTERNS = [
     re.compile(r"\b(severe|serious)\s+facial\s+(trauma|injury)\b", re.I),
     re.compile(r"\b(loss of consciousness|lost consciousness|unconscious|passed out|altered awareness|fainted)\b", re.I),
 ]
+MIN_QUERY_COVERAGE = 0.60
+
 ABSTENTION = (
     "The current Northside Dental knowledge base does not specify this information. "
     "I can't confirm the clinic's position from the available records; please contact the front desk."
@@ -82,7 +84,11 @@ class RAGService:
             )
 
         retrieved_all = self.retriever.search(normalized_query, top_k=self.top_k)
-        retrieved = [r for r in retrieved_all if r.relevance_score >= self.min_relevance]
+        retrieved = [
+            r for r in retrieved_all
+            if r.relevance_score >= self.min_relevance
+            and r.query_coverage >= MIN_QUERY_COVERAGE
+        ]
 
         if self.generator is None:
             if not retrieved:
