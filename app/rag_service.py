@@ -17,12 +17,6 @@ EMERGENCY_PATTERNS = [
 ]
 MIN_QUERY_COVERAGE = 0.60
 
-ABSTENTION = (
-    "The current Northside Dental knowledge base does not specify this information. "
-    "I can't confirm the clinic's position from the available records; please contact the front desk."
-)
-
-
 class AnswerGenerator(Protocol):
     def generate(self, query: str, retrieved: list[dict]) -> GeminiDraft: ...
 
@@ -83,22 +77,15 @@ class RAGService:
                 answerable=True,
             )
 
+        if self.generator is None:
+            raise RuntimeError("GEMINI_API_KEY is not configured. Set it in your local .env file or environment; this CLI requires Gemini to generate answers.")
+
         retrieved_all = self.retriever.search(normalized_query, top_k=self.top_k)
         retrieved = [
             r for r in retrieved_all
             if r.relevance_score >= self.min_relevance
             and r.query_coverage >= MIN_QUERY_COVERAGE
         ]
-
-        if self.generator is None:
-            if not retrieved:
-                return QueryResponse(
-                    answer=ABSTENTION,
-                    sources=[],
-                    confidence_score=0.0,
-                    answerable=False,
-                )
-            raise RuntimeError("GEMINI_API_KEY is not configured. Set it in your local .env file or environment.")
 
         # Call Gemini even when no chunk clears the relevance threshold. The prompt
         # distinguishes clinic-specific unknowns from general educational questions.
@@ -110,12 +97,7 @@ class RAGService:
         valid_cited = [retrieved_by_id[cid] for cid in cited_ids if cid in retrieved_by_id]
 
         if not draft.answer.strip():
-            return QueryResponse(
-                answer=ABSTENTION,
-                sources=[],
-                confidence_score=0.0,
-                answerable=False,
-            )
+            raise RuntimeError("Gemini returned an empty answer. Please retry the question.")
 
         if not valid_cited:
             # A useful response can still be returned, but it is marked as
