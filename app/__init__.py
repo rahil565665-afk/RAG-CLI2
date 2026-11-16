@@ -1,0 +1,1 @@
+"""Northside Dental Clinic fictional-demo RAG CLI."""
