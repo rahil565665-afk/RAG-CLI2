@@ -155,10 +155,11 @@ If you already cloned the repository earlier, update the code and dependencies f
 
 ```powershell
 git pull --ff-only origin main
+.\.venv\Scripts\python.exe -m pip uninstall -y httpx
 .\.venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
 ```
 
-The dependency update is important when upgrading from an earlier copy: it replaces the older Google Gen AI SDK and the deprecated Starlette test-client transport with the versions used by the current project. Keep using the same virtual-environment interpreter for tests and CLI commands.
+The uninstall step removes the legacy `httpx` package from older virtual environments; this project now uses `httpx2` for Starlette's test client and the Google Gen AI SDK. The dependency update also upgrades the older Google Gen AI SDK to the 2.x version used by this project. Keep using the same virtual-environment interpreter for tests and CLI commands.
 
 ## Asking questions
 
