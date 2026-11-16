@@ -142,3 +142,14 @@ def test_fictional_address_is_returned_with_a_source_and_high_support_score():
     assert result.sources[0].chunk_id == "NSDC-01-001"
     assert "18 Cedar Lane" in service.kb.by_id["NSDC-01-001"]["content"]
     assert result.confidence_score >= 90.0
+
+
+
+def test_missing_gemini_key_never_returns_a_predefined_answer_for_unknown_questions():
+    service = make_service(None, threshold=1.0)
+    try:
+        service.answer("What is the clinic's annual revenue?")
+    except RuntimeError as exc:
+        assert "GEMINI_API_KEY" in str(exc)
+    else:
+        raise AssertionError("Expected a configuration error instead of a fixed fallback answer")
