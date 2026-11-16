@@ -35,7 +35,7 @@ def test_unknown_clinic_information_gets_helpful_fallback_without_claiming_yes_o
         cited_ids=[],
         answer="The current Northside Dental knowledge base does not specify whether tooth replacement is offered. I can't confirm that from the available clinic information; please contact the front desk.",
     )
-    service = make_service(fake, threshold=1.0)
+    service = make_service(fake)
     result = service.answer("Do you do tooth replacement?")
 
     assert fake.calls == 1
@@ -112,3 +112,21 @@ def test_fallback_answer_can_be_returned_for_general_question_without_claiming_c
     assert result.sources == []
     assert result.confidence_score == 0.0
     assert result.answerable is False
+
+
+
+def test_partial_keyword_overlap_is_not_misused_as_proof_of_a_clinic_service():
+    fake = FakeGenerator(
+        cited_ids=[],
+        answer="The current Northside Dental knowledge base does not specify whether tooth replacement is offered. I can't confirm that from the available clinic information; please contact the front desk.",
+    )
+    service = make_service(fake)
+
+    result = service.answer("Do you do tooth replacement?")
+
+    assert fake.calls == 1
+    assert fake.last_retrieved == []
+    assert result.sources == []
+    assert result.confidence_score == 0.0
+    assert result.answerable is False
+    assert "does not specify whether tooth replacement is offered" in result.answer
