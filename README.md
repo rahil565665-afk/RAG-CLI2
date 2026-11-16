@@ -56,7 +56,7 @@ Set-Location .\RAG-CLI
 Your project will be located at:
 
 ```text
-C:\Users\<your-Windows-username>\Projects\RAG-CLI
+C:\Users\<your-Windows-username>\Projects\RAG-CLI2
 ```
 
 You can use a different writable location, such as Downloads, by changing the first command to:
@@ -77,7 +77,7 @@ You should see `requirements.txt`, `.env.example`, the `app` folder, and the `da
 **If you see “destination path 'RAG-CLI' already exists”:** the repository may already have been cloned. Move into the existing folder instead of cloning it again:
 
 ```powershell
-Set-Location (Join-Path $HOME "Projects\RAG-CLI2")
+Set-Location (Join-Path $HOME "Projects\RAG-CLI22")
 ```
 
 ### 3. Create a virtual environment
