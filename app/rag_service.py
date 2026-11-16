@@ -15,7 +15,10 @@ EMERGENCY_PATTERNS = [
     re.compile(r"\b(severe|serious)\s+facial\s+(trauma|injury)\b", re.I),
     re.compile(r"\b(loss of consciousness|lost consciousness|unconscious|passed out|altered awareness|fainted)\b", re.I),
 ]
-ABSTENTION = "The fictional Northside Dental Clinic demo knowledge base does not contain enough information to answer that. Please confirm with the front desk."
+ABSTENTION = (
+    "The current Northside Dental knowledge base does not specify this information. "
+    "I can't confirm the clinic's position from the available records; please contact the front desk."
+)
 
 
 class AnswerGenerator(Protocol):
@@ -80,24 +83,39 @@ class RAGService:
 
         retrieved_all = self.retriever.search(normalized_query, top_k=self.top_k)
         retrieved = [r for r in retrieved_all if r.relevance_score >= self.min_relevance]
-        if not retrieved:
+
+        if self.generator is None:
+            if not retrieved:
+                return QueryResponse(
+                    answer=ABSTENTION,
+                    sources=[],
+                    confidence_score=0.0,
+                    answerable=False,
+                )
+            raise RuntimeError("GEMINI_API_KEY is not configured. Set it in your local .env file or environment.")
+
+        # Call Gemini even when no chunk clears the relevance threshold. The prompt
+        # distinguishes clinic-specific unknowns from general educational questions.
+        # Weakly related chunks are deliberately withheld instead of being treated as facts.
+        raw_chunks = [r.chunk for r in retrieved]
+        draft = self.generator.generate(normalized_query, raw_chunks)
+        retrieved_by_id = {r.chunk["chunk_id"]: r for r in retrieved}
+        cited_ids = list(dict.fromkeys(draft.cited_chunk_ids))
+        valid_cited = [retrieved_by_id[cid] for cid in cited_ids if cid in retrieved_by_id]
+
+        if not draft.answer.strip():
             return QueryResponse(
                 answer=ABSTENTION,
                 sources=[],
                 confidence_score=0.0,
                 answerable=False,
             )
-        if self.generator is None:
-            raise RuntimeError("GEMINI_API_KEY is not configured. Set it in your local .env file or environment.")
 
-        raw_chunks = [r.chunk for r in retrieved]
-        draft = self.generator.generate(normalized_query, raw_chunks)
-        retrieved_by_id = {r.chunk["chunk_id"]: r for r in retrieved}
-        cited_ids = list(dict.fromkeys(draft.cited_chunk_ids))
-        valid_cited = [retrieved_by_id[cid] for cid in cited_ids if cid in retrieved_by_id]
-        if not valid_cited or not draft.answer.strip():
+        if not valid_cited:
+            # A useful response can still be returned, but it is marked as
+            # unsupported by the local clinic knowledge base.
             return QueryResponse(
-                answer=ABSTENTION,
+                answer=draft.answer,
                 sources=[],
                 confidence_score=0.0,
                 answerable=False,
