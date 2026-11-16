@@ -9,14 +9,19 @@ KB_PATH = ROOT / "data" / "northside_dental_knowledge_base.json"
 
 
 class FakeGenerator:
-    def __init__(self, cited_ids=None):
+    def __init__(self, cited_ids=None, answer="The sample cleaning fee is $120; confirm the current amount with the front desk."):
         self.cited_ids = cited_ids
+        self.answer = answer
         self.calls = 0
+        self.last_retrieved = None
 
     def generate(self, query, retrieved):
         self.calls += 1
-        ids = self.cited_ids if self.cited_ids is not None else [retrieved[0]["chunk_id"]]
-        return GeminiDraft(answer="The sample cleaning fee is $120; confirm the current amount with the front desk.", cited_chunk_ids=ids)
+        self.last_retrieved = retrieved
+        ids = self.cited_ids if self.cited_ids is not None else (
+            [retrieved[0]["chunk_id"]] if retrieved else []
+        )
+        return GeminiDraft(answer=self.answer, cited_chunk_ids=ids)
 
 
 def make_service(generator, threshold=0.12):
@@ -25,15 +30,21 @@ def make_service(generator, threshold=0.12):
     return RAGService(kb, retriever, generator, min_relevance=threshold, top_k=4)
 
 
-def test_unknown_question_abstains_without_calling_gemini():
-    fake = FakeGenerator()
-    service = make_service(fake)
-    result = service.answer("What is the clinic's annual revenue and net profit?")
+def test_unknown_clinic_information_gets_helpful_fallback_without_claiming_yes_or_no():
+    fake = FakeGenerator(
+        cited_ids=[],
+        answer="The current Northside Dental knowledge base does not specify whether tooth replacement is offered. I can't confirm that from the available clinic information; please contact the front desk.",
+    )
+    service = make_service(fake, threshold=1.0)
+    result = service.answer("Do you do tooth replacement?")
+
+    assert fake.calls == 1
+    assert fake.last_retrieved == []
+    assert "does not specify whether tooth replacement is offered" in result.answer
+    assert "does not offer" not in result.answer.lower()
     assert result.answerable is False
     assert result.sources == []
     assert result.confidence_score == 0.0
-    assert "confidence_basis" not in result.model_dump()
-    assert fake.calls == 0
 
 
 def test_only_retrieved_citations_are_returned():
@@ -86,3 +97,18 @@ def test_exact_clinic_name_query_gets_high_retrieval_support_score():
     assert result.answerable is True
     assert result.sources[0].chunk_id == "NSDC-01-001"
     assert 90.0 <= result.confidence_score <= 100.0
+
+
+
+def test_fallback_answer_can_be_returned_for_general_question_without_claiming_clinic_policy():
+    fallback = "General information—not confirmed Northside Dental Clinic policy or service information: tooth replacement can refer to options such as dentures, bridges, or implants."
+    fake = FakeGenerator(cited_ids=[], answer=fallback)
+    service = make_service(fake, threshold=1.0)
+
+    result = service.answer("What does tooth replacement mean?")
+
+    assert fake.calls == 1
+    assert result.answer.startswith("General information")
+    assert result.sources == []
+    assert result.confidence_score == 0.0
+    assert result.answerable is False
