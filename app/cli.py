@@ -59,10 +59,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         prog="northside-rag",
         description="Ask the fictional Northside Dental Clinic knowledge base. Returns structured JSON.",
     )
-    parser.add_argument("query", nargs="?", help="Question to ask; omit to start interactive mode")
+    parser.add_argument("query", nargs="*", help="Question to ask (multiple unquoted words are accepted); omit to start interactive mode")
     parser.add_argument("--top-k", type=int, choices=range(1, 6), default=None, help="Number of chunks sent to Gemini (1-5)")
     parser.add_argument("--compact", action="store_true", help="Print compact JSON on one line")
-    args = parser.parse_args(argv)
+    # Accept both a quoted query and an ordinary multi-word PowerShell command.
+    # parse_intermixed_args also allows options before or after the question.
+    args = parser.parse_intermixed_args(argv)
 
     try:
         service = build_service(args.top_k)
@@ -70,8 +72,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         _emit({"error": {"code": "KNOWLEDGE_BASE_ERROR", "message": "Could not load the local knowledge base. Check NORTHSIDE_KB_PATH and the data file."}}, args.compact)
         return 4
 
-    if args.query:
-        return run_query(service, args.query, args.compact)
+    query = " ".join(args.query).strip()
+    if query:
+        return run_query(service, query, args.compact)
 
     print("Northside Dental RAG CLI — fictional demo data only.")
     print("Enter a question, or type 'exit' to quit. Do not enter real patient information.")
