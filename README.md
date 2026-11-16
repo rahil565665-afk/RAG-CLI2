@@ -149,6 +149,17 @@ A successful response is JSON shaped like this (wording and scores vary):
 
 The exact values above are illustrative. The response is generated from the fictional local data. The `confidence_score` is a 0–100 retrieval-support score based on how many meaningful query terms match the cited knowledge-base passage and the strength of the BM25 match. It is a ranking/support indicator, not a calibrated probability that an answer is factually correct.
 
+## Updating an existing Windows checkout
+
+If you already cloned the repository earlier, update the code and dependencies from the latest `main` branch. Run these commands from inside the `RAG-CLI2` folder:
+
+```powershell
+git pull --ff-only origin main
+.\.venv\Scripts\python.exe -m pip install --upgrade -r requirements.txt
+```
+
+The dependency update is important when upgrading from an earlier copy: it replaces the older Google Gen AI SDK and the deprecated Starlette test-client transport with the versions used by the current project. Keep using the same virtual-environment interpreter for tests and CLI commands.
+
 ## Asking questions
 
 ### One question at a time
@@ -399,6 +410,10 @@ Check the model ID, network connection, key, and quota. The app intentionally hi
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 ```
+
+## Fictional address in the sample knowledge base
+
+The Northside Dental sample profile uses this invented demonstration address: **18 Cedar Lane, Northside District, Riverton, Example State 00018, USA**. It is stored in the existing clinic-profile knowledge-base chunk so questions such as "What is the clinic address?" or the common typo "What is your adress?" can retrieve the profile. The district, state and postal code are fictional additions for this demo, not a real location.
 
 ## Safety and limitations
 
