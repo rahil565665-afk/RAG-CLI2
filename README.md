@@ -77,7 +77,7 @@ You should see `requirements.txt`, `.env.example`, the `app` folder, and the `da
 **If you see “destination path 'RAG-CLI' already exists”:** the repository may already have been cloned. Move into the existing folder instead of cloning it again:
 
 ```powershell
-Set-Location (Join-Path $HOME "Projects\RAG-CLI22")
+Set-Location (Join-Path $HOME "Projects\RAG-CLI2")
 ```
 
 ### 3. Create a virtual environment
