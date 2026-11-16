@@ -74,7 +74,7 @@ Get-ChildItem
 
 You should see `requirements.txt`, `.env.example`, the `app` folder, and the `data` folder. Continue with step 3 only after these files are visible.
 
-**If you see “destination path 'RAG-CLI' already exists”:** the repository may already have been cloned. Move into the existing folder instead of cloning it again:
+**If you see “destination path 'RAG-CLI2' already exists”:** the repository may already have been cloned. Move into the existing folder instead of cloning it again:
 
 ```powershell
 Set-Location (Join-Path $HOME "Projects\RAG-CLI2")
@@ -184,7 +184,7 @@ At the `Question>` prompt, type a question and press Enter. Type `exit` or `quit
 .\.venv\Scripts\python.exe -m app.cli --help
 ```
 
-The number of chunks can be set from 1 to 5. The `TOP_K` and `MIN_RELEVANCE` defaults can also be changed in your local `.env` file.
+The number of chunks can be set from 1 to 5. The `TOP_K` and `MIN_RELEVANCE` defaults can also be changed in your local `.env` file. If no passage clears the relevance threshold, Gemini is still called without weak or unrelated evidence so it can give a safe fallback.
 
 ## Run automated tests
 
@@ -195,6 +195,17 @@ Tests do not call Gemini and do not require an API key. They use local test data
 ```
 
 The test suite covers retrieval, knowledge-base integrity, abstention, emergency phrase handling, citation filtering, the API endpoint, and the Gemini structured-output schema. GitHub Actions runs the same suite automatically on pushes and pull requests for Python 3.11, 3.12, and 3.13. The first CI run for this repository completed successfully on all three versions.
+
+## Questions outside the knowledge base
+
+The assistant is not limited to returning the same fixed abstention message when retrieval finds no relevant passage. It uses two different fallback behaviours:
+
+- **Clinic-specific questions:** If the knowledge base does not say whether Northside Dental offers a service, accepts a plan, charges a fee, or follows a policy, the assistant says that the information is not specified and recommends checking with the front desk. Missing information is not treated as a "no" or a "yes". For example, asking "Do you do tooth replacement?" should produce an unconfirmed/not-documented response—not a claim that the clinic does or does not offer it.
+- **General educational questions:** For broad dental-information questions, the assistant may provide a concise general explanation using model knowledge. It labels that content as general information and does not present it as a Northside Dental service, policy, or clinical assessment.
+
+When there is no cited knowledge-base evidence, the response still contains a helpful `answer`, but `sources` is empty, `confidence_score` is `0.0`, and `answerable` is `false`. In this API, `answerable` means that the response is supported by the local clinic knowledge base; it does not mean that the assistant returned no text. The zero score makes clear that the answer has no retrieval support from this clinic database.
+
+The model must still avoid diagnoses, prescriptions, treatment decisions, and individualised clinical advice. Questions about a person's symptoms or care should be referred to a licensed dental professional.
 
 ## Optional: run the HTTP API
 
@@ -302,7 +313,7 @@ In other words, AI coding assistants produced most of the actual code; I directe
 | `GEMINI_API_KEY` | required | Your private Google Gemini API key |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model used to generate answers |
 | `TOP_K` | `4` | Maximum number of retrieved passages (1–5) |
-| `MIN_RELEVANCE` | `0.22` | Minimum retrieval relevance required before calling Gemini |
+| `MIN_RELEVANCE` | `0.22` | Minimum retrieval relevance required for a passage to be sent as supporting evidence |
 | `RATE_LIMIT_PER_MINUTE` | `30` | Local application request limit |
 
 The app loads `.env` from the project root. Environment variables already set in the shell take precedence over `.env`.
@@ -335,7 +346,7 @@ If cloning already failed, no repository folder was created in the protected loc
 
 ### `requirements.txt` cannot be found
 
-Make sure the PowerShell working directory is the repository root (the folder named `RAG-CLI`), not its parent folder:
+Make sure the PowerShell working directory is the repository root (the folder named `RAG-CLI2`), not its parent folder:
 
 ```powershell
 Get-Location
