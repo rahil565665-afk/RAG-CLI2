@@ -26,7 +26,8 @@ The project assigns stable `NSDC-SS-NNN` chunk IDs to the source PDF. The separa
 
 ### NSDC-01-001 — Clinic profile: Clinic identity and profile
 - Source page(s): 2
-- Keywords: clinic, profile, name, address, type, location
+- Keywords: clinic, profile, name, address, street address, mailing address, location, postal code, postcode, zip code, directions
+- Fictional demo address: 18 Cedar Lane, Northside District, Riverton, Example State 00018, USA
 
 ### NSDC-01-002 — Clinic profile: Contact details, access and patient groups
 - Source page(s): 2

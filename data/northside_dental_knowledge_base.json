@@ -88,9 +88,19 @@
         "name",
         "address",
         "type",
-        "location"
+        "location",
+        "street address",
+        "mailing address",
+        "postal code",
+        "postcode",
+        "zip code",
+        "directions",
+        "clinic location",
+        "city",
+        "state",
+        "country"
       ],
-      "content": "Business name: Northside Dental Clinic. Clinic type: independent general and family dental practice. Address: 18 Cedar Lane, Northside, Riverton (fictional town)."
+      "content": "Business name: Northside Dental Clinic. Clinic type: independent general and family dental practice. Fictional demo street address: 18 Cedar Lane, Northside District, Riverton, Example State 00018, USA. The street, district, town, state name, and postal code are invented for this demonstration and are not a real-world clinic location."
     },
     {
       "chunk_id": "NSDC-01-002",

@@ -43,3 +43,22 @@ def test_negative_and_safety_terms_are_preserved():
     tokens = tokenize("not without worsening pain, bleeding, or swelling")
     for term in ("not", "without", "worsening", "bleeding", "swelling"):
         assert term in tokens
+
+
+def test_clinic_address_retrieves_clinic_profile():
+    _, retriever = make_retriever()
+    results = retriever.search("What is the clinic address?", top_k=4)
+    assert results
+    assert results[0].chunk["chunk_id"] == "NSDC-01-001"
+    assert "18 Cedar Lane" in results[0].chunk["content"]
+
+
+def test_common_address_misspelling_is_normalized():
+    tokens = tokenize("what is your adress")
+    assert "address" in tokens
+    assert "adress" not in tokens
+
+    _, retriever = make_retriever()
+    results = retriever.search("what is your adress", top_k=4)
+    assert results
+    assert results[0].chunk["chunk_id"] == "NSDC-01-001"

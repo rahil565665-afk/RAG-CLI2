@@ -59,7 +59,8 @@ def query(request: QueryRequest) -> QueryResponse:
     try:
         return service.answer(request.query)
     except GeminiProviderError as exc:
-        raise HTTPException(status_code=503, detail="The answer provider is temporarily unavailable") from exc
+        status_code = 429 if exc.status_code == 429 else 503
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
     except RuntimeError as exc:
         message = str(exc)
         if "GEMINI_API_KEY" in message:

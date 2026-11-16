@@ -18,11 +18,11 @@ The CLI is the main interface. A small FastAPI endpoint is also available as an 
 ## Requirements
 
 - Windows 10/11, macOS, or Linux.
-- Python 3.11 or newer. Python 3.12 or 3.13 is recommended for a broadly supported setup.
+- Python 3.11 or newer. The automated test matrix covers Python 3.11 through 3.15.
 - An internet connection for Gemini requests.
 - A Google Gemini API key. You can create one in [Google AI Studio](https://aistudio.google.com/app/apikey).
 
-The default model is `gemini-3.5-flash-lite`. Google's model documentation lists structured output support for this model. Free-tier access and rate limits depend on Google's current availability, your project, region, and account. Check the [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite), [pricing/free-tier information](https://ai.google.dev/gemini-api/docs/pricing), and [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) before use. Free access is not an unlimited-use guarantee.
+The default model is `gemini-3.5-flash-lite`. The Google Gen AI SDK is pinned to the maintained 2.x line, and `httpx2` is used for Starlette's current test client. Free-tier access and rate limits depend on Google's current availability, your project, region, and account. Check the [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite), [pricing/free-tier information](https://ai.google.dev/gemini-api/docs/pricing), and [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) before use. Free access is not an unlimited-use guarantee.
 
 ## Quick start — Windows PowerShell
 
@@ -194,7 +194,7 @@ Tests do not call Gemini and do not require an API key. They use local test data
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-The test suite covers retrieval, knowledge-base integrity, abstention, emergency phrase handling, citation filtering, the API endpoint, and the Gemini structured-output schema. GitHub Actions runs the same suite automatically on pushes and pull requests for Python 3.11, 3.12, and 3.13. The first CI run for this repository completed successfully on all three versions.
+The test suite covers retrieval, knowledge-base integrity, abstention, emergency phrase handling, citation filtering, the API endpoint, and the Gemini structured-output schema. GitHub Actions runs the same suite automatically on pushes and pull requests for Python 3.11, 3.12, 3.13, 3.14, and 3.15. The first CI run for this repository completed successfully on all three versions.
 
 ## Questions outside the knowledge base
 
@@ -206,6 +206,14 @@ The assistant is not limited to returning the same fixed abstention message when
 When there is no cited knowledge-base evidence, the response still contains a helpful `answer`, but `sources` is empty, `confidence_score` is `0.0`, and `answerable` is `false`. In this API, `answerable` means that the response is supported by the local clinic knowledge base; it does not mean that the assistant returned no text. The zero score makes clear that the answer has no retrieval support from this clinic database.
 
 The model must still avoid diagnoses, prescriptions, treatment decisions, and individualised clinical advice. Questions about a person's symptoms or care should be referred to a licensed dental professional.
+
+## Gemini reliability and retries
+
+The application reuses one Google Gen AI SDK client instead of creating a new HTTP connection pool for each question. It explicitly configures one initial request plus up to four retries for transient HTTP/network failures, using exponential backoff. Retryable HTTP statuses include 408, 429, 500, 502, 503, and 504.
+
+The CLI now distinguishes quota/rate-limit errors, authentication errors, unavailable models, invalid requests, and temporary provider/network failures. Persistent quota limits, invalid credentials, disabled models, or malformed requests cannot be fixed by retrying; the message explains what to check. A 429 may still require waiting for quota to reset.
+
+This improves resilience to temporary provider/network interruptions, but no client can guarantee that an external API is always available. For a real service, add operational monitoring, request limits, and a documented outage/fallback policy.
 
 ## Optional: run the HTTP API
 
@@ -292,7 +300,7 @@ These decisions keep the demo understandable, inexpensive to run, and straightfo
 | FastAPI | Provides the optional HTTP API on top of the same RAG service |
 | Uvicorn | Runs the optional FastAPI application locally |
 | pytest | Runs automated tests for retrieval, service behavior, API behavior, and Gemini schema compatibility |
-| HTTPX | Supports FastAPI endpoint tests through its test client |
+| HTTPX2 | Provides the supported transport for Starlette's current test client |
 
 No separate vector database, embeddings framework, LangChain, or frontend framework is required by the current implementation.
 
@@ -371,6 +379,10 @@ Check that the key is valid, the corresponding Google AI Studio project can use 
 ### Gemini returns 404 or says the model is unavailable
 
 Check the current [Gemini model list](https://ai.google.dev/gemini-api/docs/models) and confirm the model ID is available to your project. You can change `GEMINI_MODEL` in `.env`. Model availability can change over time and may vary by account or region.
+
+### Gemini reports a temporary provider or network error
+
+The SDK automatically retries common transient HTTP/network failures with exponential backoff. The CLI now prints an actionable error code after those retries are exhausted. For `GEMINI_TEMPORARILY_UNAVAILABLE` or `GEMINI_NETWORK_ERROR`, check connectivity and try again after a short interval. Persistent quota exhaustion requires the quota window to reset or the project limit to be increased.
 
 ### Gemini returns 429 / quota exceeded
 

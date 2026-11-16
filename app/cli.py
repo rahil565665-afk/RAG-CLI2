@@ -37,8 +37,8 @@ def run_query(service: RAGService, query: str, compact: bool = False) -> int:
         result = service.answer(query)
         _emit(result.model_dump(), compact)
         return 0
-    except GeminiProviderError:
-        _emit({"error": {"code": "GEMINI_REQUEST_FAILED", "message": "Gemini could not complete the request. Check the model setting, network connection, API quota, and key configuration."}}, compact)
+    except GeminiProviderError as exc:
+        _emit({"error": {"code": exc.error_code, "message": str(exc)}}, compact)
         return 3
     except RuntimeError as exc:
         message = str(exc)

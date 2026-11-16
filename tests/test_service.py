@@ -130,3 +130,15 @@ def test_partial_keyword_overlap_is_not_misused_as_proof_of_a_clinic_service():
     assert result.confidence_score == 0.0
     assert result.answerable is False
     assert "does not specify whether tooth replacement is offered" in result.answer
+
+
+
+def test_fictional_address_is_returned_with_a_source_and_high_support_score():
+    service = make_service(FakeGenerator())
+    result = service.answer("What is your adress?")
+
+    assert result.answerable is True
+    assert result.sources
+    assert result.sources[0].chunk_id == "NSDC-01-001"
+    assert "18 Cedar Lane" in service.kb.by_id["NSDC-01-001"]["content"]
+    assert result.confidence_score >= 90.0

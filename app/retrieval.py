@@ -18,9 +18,17 @@ STOPWORDS = {
     "would", "you", "your", "our", "we", "they", "he", "she", "them", "us", "have", "has",
 }
 PRESERVE = {"no", "not", "without", "never", "cannot", "can't", "worsening", "difficulty", "bleeding", "swelling"}
+TOKEN_ALIASES = {
+    "adress": "address",
+    "addres": "address",
+    "adres": "address",
+    "adddress": "address",
+    "addr": "address",
+}
 
 
 def _normalize_token(token: str) -> str:
+    token = TOKEN_ALIASES.get(token, token)
     if token in PRESERVE:
         return token
     if len(token) > 5 and token.endswith("ies"):
