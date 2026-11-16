@@ -50,7 +50,7 @@ $projectRoot = Join-Path $HOME "Projects"
 New-Item -ItemType Directory -Force -Path $projectRoot | Out-Null
 Set-Location $projectRoot
 git clone https://github.com/rahil565665-afk/RAG-CLI2.git
-Set-Location .\RAG-CLI
+Set-Location .\RAG-CLI2
 ```
 
 Your project will be located at:
@@ -273,7 +273,7 @@ The project uses a deliberately small, CLI-first RAG architecture:
 
 1. **Local knowledge source:** the fictional clinic handbook is represented as a JSON file containing 31 topic-based chunks. Each chunk carries its own stable ID, section information, source page, keywords, and content.
 2. **Local retrieval before generation:** a BM25 keyword retriever ranks the chunks on the user's machine. The project does not require a hosted vector database, embedding service, or separate retrieval server.
-3. **Relevance gate and top-k selection:** only the highest-ranked chunks that meet the configured minimum relevance threshold are sent to the model. The number of chunks is limited to five.
+3. **Relevance gate and top-k selection:** only the highest-ranked chunks that meet the configured minimum relevance threshold and cover at least 60% of the meaningful query terms are sent as evidence. The number of chunks is limited to five. This prevents a single shared word (for example, “tooth”) from being treated as proof of a specific service such as tooth replacement.
 4. **Grounded answer generation:** the application sends the question and selected evidence to Google Gemini. The model is instructed to answer from those passages only and to abstain when the supplied evidence is insufficient.
 5. **Structured response validation:** Pydantic validates the model's small response schema. The application then maps cited chunk IDs back to the original local records and builds the source citations itself, rather than trusting the model to invent section or page metadata.
 6. **Safety-first deterministic handling:** a narrow emergency-phrase rule runs before a Gemini call. It is only a limited backstop, not a diagnostic system or a replacement for local emergency services.
@@ -339,7 +339,7 @@ $projectRoot = Join-Path $HOME "Projects"
 New-Item -ItemType Directory -Force -Path $projectRoot | Out-Null
 Set-Location $projectRoot
 git clone https://github.com/rahil565665-afk/RAG-CLI2.git
-Set-Location .\RAG-CLI
+Set-Location .\RAG-CLI2
 ```
 
 If cloning already failed, no repository folder was created in the protected location; run the commands above. If the project has already been cloned under another folder, use `Set-Location` with that full folder path rather than cloning it again.
