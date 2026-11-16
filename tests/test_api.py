@@ -18,13 +18,11 @@ def test_api_rejects_blank_query():
     assert response.status_code == 422
 
 
-def test_api_returns_abstention_for_unknown_query():
+def test_api_requires_gemini_even_when_no_knowledge_base_passage_matches(monkeypatch):
+    monkeypatch.setattr(service, "generator", None)
     response = client.post("/api/v1/query", json={"query": "What is the clinic's annual revenue?"})
-    assert response.status_code == 200
-    body = response.json()
-    assert body["answerable"] is False
-    assert body["sources"] == []
-    assert "confidence_basis" not in body
+    assert response.status_code == 503
+    assert "GEMINI_API_KEY" in response.json()["detail"]
 
 
 def test_api_returns_safe_configuration_error_without_key(monkeypatch):
