@@ -49,7 +49,7 @@ The commands below work even when PowerShell starts in `C:\Windows\System32`. Th
 $projectRoot = Join-Path $HOME "Projects"
 New-Item -ItemType Directory -Force -Path $projectRoot | Out-Null
 Set-Location $projectRoot
-git clone https://github.com/rahil565665-afk/RAG-CLI.git
+git clone https://github.com/rahil565665-afk/RAG-CLI2.git
 Set-Location .\RAG-CLI
 ```
 
@@ -77,7 +77,7 @@ You should see `requirements.txt`, `.env.example`, the `app` folder, and the `da
 **If you see “destination path 'RAG-CLI' already exists”:** the repository may already have been cloned. Move into the existing folder instead of cloning it again:
 
 ```powershell
-Set-Location (Join-Path $HOME "Projects\RAG-CLI")
+Set-Location (Join-Path $HOME "Projects\RAG-CLI2")
 ```
 
 ### 3. Create a virtual environment
@@ -216,8 +216,8 @@ This server is local to your computer by default. It is not deployed to the inte
 From Terminal, install Python 3.11+ and Git, then run:
 
 ```bash
-git clone https://github.com/rahil565665-afk/RAG-CLI.git
-cd RAG-CLI
+git clone https://github.com/rahil565665-afk/RAG-CLI2.git
+cd RAG-CLI2
 python3 -m venv .venv
 ./.venv/bin/python -m pip install --upgrade pip
 ./.venv/bin/python -m pip install -r requirements.txt
@@ -234,7 +234,7 @@ Open `.env` in a text editor, add your own Gemini API key, and save it. Then run
 ## Project structure
 
 ```text
-RAG-CLI/
+RAG-CLI2/
 ├── app/
 │   ├── cli.py              # Command-line interface
 │   ├── config.py           # Reads local .env settings
@@ -327,7 +327,7 @@ This usually means PowerShell is currently in a protected folder such as `C:\Win
 $projectRoot = Join-Path $HOME "Projects"
 New-Item -ItemType Directory -Force -Path $projectRoot | Out-Null
 Set-Location $projectRoot
-git clone https://github.com/rahil565665-afk/RAG-CLI.git
+git clone https://github.com/rahil565665-afk/RAG-CLI2.git
 Set-Location .\RAG-CLI
 ```
 
