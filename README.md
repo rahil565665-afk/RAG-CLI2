@@ -165,13 +165,16 @@ The uninstall step removes the legacy `httpx` package from older virtual environ
 
 ### One question at a time
 
+In Windows PowerShell, you can enter a question **without quotation marks**. This also avoids PowerShell's `>>` continuation prompt when an opening quote is accidentally left unclosed.
+
 ```powershell
-.\.venv\Scripts\python.exe -m app.cli "What is the clinic name?"
-.\.venv\Scripts\python.exe -m app.cli "What does the clinic do?"
-.\.venv\Scripts\python.exe -m app.cli "Does the clinic accept insurance?"
+.\.venv\Scripts\python.exe -m app.cli What is the clinic name?
+.\.venv\Scripts\python.exe -m app.cli What does the clinic do?
+.\.venv\Scripts\python.exe -m app.cli Does the clinic accept insurance?
+.\.venv\Scripts\python.exe -m app.cli What is your adress?
 ```
 
-Always run a question through `python -m app.cli`. Do not type plain-English questions directly at the PowerShell prompt; PowerShell will interpret them as commands.
+Quoted questions are still supported, but opening a quote without closing it keeps PowerShell waiting and the Python application will not start. Run each question through `python -m app.cli`; do not type a plain-English question by itself at the PowerShell prompt.
 
 ### Interactive mode
 
